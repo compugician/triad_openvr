@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket demo</title>
+    </head>
+    <body>
+        <p id="message">No Message Yet</p>
+        <script>
+            var ws = new WebSocket("ws://127.0.0.1:5678/");
+            ws.onmessage = function (event) {
+                var message = document.getElementById('message');
+                message.innerText = event.data;
+                console.log('Msg Rcv\'d');
+            };
+        </script>
+    </body>
+</html>
+
