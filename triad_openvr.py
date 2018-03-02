@@ -10,13 +10,34 @@ def update_text(txt):
 
 #Convert the standard 3x4 position/rotation matrix to a x,y,z location and the appropriate Euler angles (in degrees)
 def convert_to_euler(pose_mat):
-    yaw = 180 / math.pi * math.atan(pose_mat[1][0] /pose_mat[0][0])
-    pitch = 180 / math.pi * math.atan(-1 * pose_mat[2][0] / math.sqrt(pow(pose_mat[2][1], 2) + math.pow(pose_mat[2][2], 2)))
-    roll = 180 / math.pi * math.atan(pose_mat[2][1] /pose_mat[2][2])
-    x = pose_mat[0][3]
-    y = pose_mat[1][3]
-    z = pose_mat[2][3]
-    return [x,y,z,yaw,pitch,roll]
+    #extract quaternion from from pose matrix
+    qw = math.sqrt(max(0, 1 + pose_mat[0][0] + pose_mat[1][1]+ pose_mat[2][2])) / 2
+    qx = math.copysign(math.sqrt(max(0, 1 + pose_mat[0][0] - pose_mat[1][1] - pose_mat[2][2])) / 2, pose_mat[2][1] - pose_mat[1][2])
+    qy = math.copysign(math.sqrt(max(0, 1 - pose_mat[0][0] + pose_mat[1][1] - pose_mat[2][2])) / 2, pose_mat[0][2] - pose_mat[2][0])
+    qz = math.copysign(math.sqrt(max(0, 1 - pose_mat[0][0] - pose_mat[1][1] + pose_mat[2][2])) / 2, pose_mat[1][0] - pose_mat[0][1])
+    
+    qysqr = qy * qy
+
+    #get yaw, pitch, and roll
+    t0 = +2.0 * (qw * qx + qy * qz)
+    t1 = +1.0 - 2.0 * (qx * qx + qysqr)
+    yaw = math.degrees(math.atan2(t0, t1))
+    
+    t2 = +2.0 * (qw * qy - qz * qx)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    pitch = math.degrees(math.asin(t2))
+    
+    t3 = +2.0 * (qw * qz + qx * qy)
+    t4 = +1.0 - 2.0 * (qysqr + qz * qz)
+    roll = math.degrees(math.atan2(t3, t4))
+
+    #3D position 
+    px = pose_mat[0][3]
+    py = pose_mat[1][3]
+    pz = pose_mat[2][3]
+
+    return [px, py, pz, yaw, pitch, roll]   
 
 #Convert the standard 3x4 position/rotation matrix to a x,y,z location and the appropriate Quaternion
 def convert_to_quaternion(pose_mat):
